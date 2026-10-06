@@ -1,22 +1,35 @@
-# Patch notes
+# Patch Notes
 
-## Summary of changes
+## What I changed
 
-- Corrected the task search predicate in the Spring Data query and both SQL reference files. Search terms, archive state, and status are now combined with the intended `AND`/`OR` grouping.
-- Removed artificial request sleeping from the API and added validation for status, page, and page size.
-- Made out-of-range pages return an empty result safely instead of risking an invalid sub-list range.
-- Reset pagination when search or status filters change.
-- Prevented stale requests from overwriting newer results and cleared stale errors when a request succeeds.
-- Added an accessible label to the status select.
+I focused on correctness and the most visible user-facing issues:
 
-## Not changed
+- Fixed the search query in the Spring repository and both SQL reference files. Parentheses now ensure that archived tasks and tasks with the wrong status cannot bypass the filters because of SQL `AND`/`OR` precedence.
+- Removed the artificial delay in the API and added validation for status, page, and page size.
+- Made requests for pages beyond the result set return an empty list safely.
+- Reset pagination to page one when the search text or status filter changes.
+- Prevented slower, outdated requests from replacing newer results and cleared stale errors on a successful request.
+- Added an accessible label to the status selector.
 
-There is no role field or role vocabulary in the current schema, API, or seed data. I kept the existing status selector rather than inventing a separate role model or incorrectly treating assignees as roles.
+## What I chose not to change
 
-## Biggest remaining risk
+The project has a status field (`OPEN`, `IN_PROGRESS`, and `DONE`) and an assignee field, but no role column, role values, or role API contract. I therefore kept the existing status selector instead of inventing a role model that would not be supported by the backend.
 
-The API still loads every matching task before slicing the requested page. This is acceptable for the seeded exercise data, but production-sized datasets should use database-level pagination and a count query.
+## Remaining risk
+
+The API still loads all matching tasks before applying pagination in memory. That is adequate for the sample data, but a production system should use database-level pagination and a separate count query.
+
+## Assumptions
+
+- The existing status filter is the intended selector because the schema and API define statuses, not user roles.
+- Invalid status, page, or page-size values should receive a clear `400 Bad Request` response rather than being silently corrected.
+- A page beyond the final page should return no items, which is safer and more predictable than failing the request.
+- The seeded task data is representative enough for this exercise; database-level pagination is noted as future production work.
+
+## Validation
+
+The frontend production build passed. The backend Maven build passed; the project currently contains no automated tests. I also checked the changed source files for diagnostics and whitespace errors.
 
 ## Tools used
 
-I used the repository README, source inspection, the Maven wrapper, npm, and the browser-facing API contract to reproduce and validate the changes.
+I used the README, source inspection, the Maven wrapper, npm, SQL review, and the API contract to investigate and validate the patch.
