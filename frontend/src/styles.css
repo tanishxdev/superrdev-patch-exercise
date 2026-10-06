@@ -57,6 +57,14 @@ body {
   background: white;
 }
 
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #666;
+  font-size: 0.75rem;
+}
+
 .task-table {
   width: 100%;
   border-collapse: collapse;
